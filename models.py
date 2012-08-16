@@ -12,7 +12,12 @@ class VoteCase(db.Model):
     """The model for the candidates for the voting competition"""
     title = db.StringProperty()
     description = db.StringProperty()
-    pattern_filter = db.ReferenceProperty(EmailPattern)  # To know which Regex Pattern filter to apply to each VoteCase.
+    email_pattern = db.ReferenceProperty(EmailPattern)  # To know which Regex Pattern filter to apply to each VoteCase.
+
+    # Returns a key to the EmailPattern obj,associated with this VoteCase object.(Just for test purposes)
+    @property    
+    def ep_key(self):
+        return VoteCase.email_pattern.get_value_for_datastore(self)
 
     def __unicode__(self):
         return self.email_id
@@ -42,7 +47,7 @@ class VotedUser(db.Model):
 class AdminVoteCase(appengine_admin.ModelAdmin):
     model = VoteCase
     listFields = ('title','description',)
-    editFields = ('title','description',)
+    editFields = ('title','description','email_pattern')
 
 class AdminCandidate(appengine_admin.ModelAdmin):
     model = Candidate
@@ -55,9 +60,9 @@ class AdminVotedUser(appengine_admin.ModelAdmin):
     editFields = ('email_id','voted_cases')
 
 class AdminEmailPattern(appengine_admin.ModelAdmin):
-    model = VotedUser
+    model = EmailPattern
     listFields = ('title','re_pattern')
-    editFields = ('email_id','voted_cases')
+    editFields = ('title','re_pattern')
 
 # Register the models to the ADMIN sub-application.
-appengine_admin.register(AdminVoteCase,AdminCandidate,AdminVotedUser,)
+appengine_admin.register(AdminVoteCase,AdminCandidate,AdminVotedUser,AdminEmailPattern)

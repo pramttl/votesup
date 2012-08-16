@@ -1,27 +1,29 @@
 {% extends "base.html" %} 
 
 {% block content %}
+{% if not SELECTED_VOTE_CASE %}
     {% if user %}
 	<a href="{{ logout_url }}"><div id="logout"> LOGOUT </div></a>
     <p>Welcome, {{ user }}!</p>
 
-    <form action="/voting-page" method="post">
-      <p> Please select the VOTE CASE or POST you wish to Vote for and then Continue to Candidate Selection. </p>
+    <form action="/results-page" method="get">
+      <p> Please select the VOTE-CASE for which you would like to see the results. </p>
 
-      <select name="selected-vote-case">
+      <select name="vote_case">
         {% for vote_case in vote_cases %}
           <option value="{{ vote_case.title }}">{{ vote_case.title }}</option>
         {% endfor %}
       </select>
       <br/> <br/>
 
-      <div><input type="submit" value="Continue to Candidate Selection" id="goto-candidate-selection"></div>
+      <div><input type="submit" value="See Current Results for this Vote Case" id="results"></div>
     </form>
 
     {% else  %}
 	<a href="{{ login_url }}"><div id="login"> LOGIN </div></a>
     <p>Please Login before you can make use of the intutive VOTIAPP application.</p> <br/>
     {% endif %}
+{% endif %}
 {% endblock %}
 
 

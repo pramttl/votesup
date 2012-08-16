@@ -22,6 +22,10 @@ from sessions import gmemsess # Session Library using google "memcached" for dat
 import os
 from google.appengine.ext.webapp import template
 
+# To serialize the contents of the RESULTS dictionary to JSON.
+from simplejson import dumps
+
+# The Home Page of the Application.
 class MainPage(webapp.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -36,9 +40,7 @@ class MainPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
         self.response.out.write(template.render(path, template_values))
 
-
-# Just because I don't know how to persist GMEMSESS sessions across different views, I am not able to refactor the code 
-# into separate views (I know sessions work for the same view), So you will see multiple hooks in this class.
+# Page where the user can select the Vote Case he wants to Vote for and then proceed to selection of Candidate.
 class VotingPage(webapp.RequestHandler):
     # The handler page, where the Vote Case is selected.
     def get(self):
@@ -97,7 +99,7 @@ class VotingPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/voting-page.html')
         self.response.out.write(template.render(path, template_values))
 
-#TODO: Lots to be done here.
+# This is the view where the selected candidates Vote Count is incremented.
 class VotingHandler(webapp.RequestHandler):
     def post(self):
         SELECTED_VOTE_CASE = self.request.get('selected_vote_case')
@@ -112,6 +114,9 @@ class VotingHandler(webapp.RequestHandler):
         voted_candidate_email = str(self.request.get('voted_candidate_email'))
 
         candidate_object = Candidate.all().filter("email_id =",voted_candidate_email).get()
+        vote_case_object = VoteCase.all().filter("title =",str(SELECTED_VOTE_CASE)).get()
+        #vote_case_object = VoteCase.gql("WHERE title = :1",str(SELECTED_VOTE_CASE)).get()
+
         #TODO: Check whether there is NO KEY Error in any case.
         VOTE_INDEX = candidate_object.vote_cases.index(SELECTED_VOTE_CASE)
         n_of_votes = int(candidate_object.vote_count_list[VOTE_INDEX])
@@ -127,9 +132,13 @@ class VotingHandler(webapp.RequestHandler):
             if (voted_users_object and SELECTED_VOTE_CASE in voted_users_object.voted_cases):
                 user_already_voted = True
 
-            #TODO Checking to be done as per VoteCase.re_pattern.            
-            #<EMAIL ELIGIBILITY> Regex matching to check Email pattern for the vote case.         
-            if (re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*\.ece[1][0]@itbhu\.ac\.in$',current_user_email) != None):
+            # DONE: Remove these 2 prints after testing.
+            # print vote_case_object.title
+            # print vote_case_object.email_pattern.re_pattern
+           
+            #<EMAIL ELIGIBILITY> Regex match is appliend as per the vote case. 
+            # Eg. ^[_a-z0-9-]+(\.[_a-z0-9-]+)*\.ece[1][0]@itbhu\.ac\.in$        
+            if (re.match(str(vote_case_object.email_pattern.re_pattern),current_user_email) != None):
                 valid_user_email = True
 
             #-----------Registering the Users Vote depending on the previous checks made-----------#
@@ -157,12 +166,55 @@ class VotingHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+# This is the Page where a JSON with Summary of the CURRENT Vote results is created, after the User selects a particular Vote Case.
+class ResultsPage(webapp.RequestHandler):
+    def get(self):
+        current_user = users.get_current_user()
+        login_url = users.create_login_url("/")
+        logout_url = users.create_logout_url("/")
+
+        SELECTED_VOTE_CASE = self.request.get('vote_case')
+        available_vote_cases = VoteCase.all().order("title")
+        # If the Vote-Case has not been selected yet.
+        if not SELECTED_VOTE_CASE:
+            template_values = {
+                'user':current_user,
+                'login_url': login_url,
+                'logout_url': logout_url,
+                'vote_cases': available_vote_cases,
+                'selected_vote_case':SELECTED_VOTE_CASE,
+                }
+            path = os.path.join(os.path.dirname(__file__), 'templates/vote-case-results.html')
+            self.response.out.write(template.render(path, template_values))
+
+        #---------------- Otherwise a JSON should be returned which contains all the results {Candidate : Votes}----------------------#
+        else:
+            #----Only those candidates, who have the selected vote case applicable to them, should be dispayed----#
+            candidates_query = Candidate.all().order("email_id")
+            all_candidates = candidates_query.fetch(20) #{CAVEAT} For now I assume not more than 20 candidates.
+            # Code to filter out the the candidates that have stood for the selected Vote Case.
+            candidates = []
+            for candidate in all_candidates:
+                if SELECTED_VOTE_CASE in candidate.vote_cases:
+                    candidates.append(candidate)
+            
+            candidate_votes_dict = {}            
+            for candidate in candidates:
+                vote_index = candidate.vote_cases.index(SELECTED_VOTE_CASE)
+                vote_count = candidate.vote_count_list[vote_index]
+                candidate_votes_dict.update({str(candidate.email_id) : int(vote_count)})
+
+            data = dumps(candidate_votes_dict)
+            self.response.headers['Content-Type'] = "application/json"
+            self.response.out.write(data)       
+
 # Code to instantiate an application object, with a list of the mappings from the URL to the corresponding HANDLER CLASS.
 application = webapp.WSGIApplication([
     ('/', MainPage),
     ('/select-vote-case', VotingPage),
     ('/voting-page', VotingPage),
     ('/vote-submitted', VotingHandler),
+    ('/results-page', ResultsPage),
     # Admin pages
     (r'^(/admin)(.*)$', appengine_admin.Admin),
 ], debug=True)
