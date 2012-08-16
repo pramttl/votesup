@@ -1,0 +1,27 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    {% if user %}
+	<a href="{{ logout_url }}"><div id="logout"> LOGOUT </div></a>
+    <p>Welcome, {{ user }}!</p>
+
+    <form action="/voting-page" method="post">
+      <p> Please select the candidate you want to vote for and click on SUBMIT MY VOTE. </p>
+
+      <select name="selected-vote-case">
+        {% for vote_case in vote_cases %}
+          <option value="{{ vote_case.title }}">{{ vote_case.title }}</option>
+        {% endfor %}
+      </select>
+      <br/> <br/>
+
+      <div><input type="submit" value="Continue to Candidate Selection" id="selected-vote-case"></div>
+    </form>
+
+    {% else  %}
+	<a href="{{ login_url }}"><div id="login"> LOGIN </div></a>
+    <p>Please Login before you can make use of the intutive VOTIAPP application.</p> <br/>
+    {% endif %}
+{% endblock %}
+
+

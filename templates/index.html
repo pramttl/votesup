@@ -1,0 +1,20 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    {% if user %}
+		<a href="{{ logout_url }}"><div id="logout"> <p>LOGOUT</p></div></a>
+		<p>Welcome, {{ user }}!</p>
+		<p> Aapka Swagat Hai!</p> <br/> 
+		<p> VOTIAPP: Online Voting Website for B.Tech. 2014 ECE Students from IIT (BHU) Varanasi</p>
+		<p> Please click on VOTING PAGE to take you to the place where you can select your candidate</p>
+
+		<!--a href="user-registration"> (USER REGISTRATION) </a> <br/>
+		<a href="aayam-events"> (EVENTS REGISTRATION) </a-->
+    {% else  %}
+<p align="center"> VOTIAPP: Intutive name? isn't it? ;) is a voting application for students of the Electronics Engineering deparment at IIT (BHU) Varanasi. </p>
+<p>It makes use of the Google Authentication system. All '@itbhu.ac.in' email id's will work with this Application. The application does not have access to any of your personal information from your @itbhu.ac.in accounts. Its just your email id, so that we are sure that you only vote once.</p>
+		<a href="{{ login_url }}"><div id="login"> <p>LOGIN</p> </div></a>
+		<p>Please Login before you can make use of VOTIAPP. </p> <br/>
+    {% endif %}
+
+{% endblock %}

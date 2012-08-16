@@ -1,0 +1,17 @@
+{% extends "base.html" %} 
+
+{% block content %}
+  <body>
+    {% if user %}
+	    <a href="{{ logout_url }}"><div id="logout"> LOGOUT </div></a>
+
+        {% if vote_successfully_submitted %}
+        <p>Thank You, {{ user }}! Your vote has been submitted successfully.</p> 
+        {% else  %}
+        <p> Either you are not a B.Tech. 2014 ECE 10 student of IIT (BHU), or you are trying to submit a vote again. </p> <br/>
+        {% endif %}
+
+    {% else %}
+    <a href="{{ login_url }}"><div id="login"> LOGIN </div></a>
+    {% endif %}
+{% endblock %}

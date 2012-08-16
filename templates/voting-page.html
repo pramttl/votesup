@@ -1,0 +1,40 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    {% if user %}
+	<a href="{{ logout_url }}"><div id="logout"> LOGOUT </div></a>
+    <p>Welcome, {{ user }}!</p>
+
+    <form action="/vote-submitted" method="post">
+      <p> You have selected the following vote case: <b> {{ selected_vote_case }} </b> </p>
+      <p> Please select the candidate you want to vote for and click on SUBMIT MY VOTE. </p>
+
+      <select name="voted_candidate_email">
+        {% for candidate in candidates %}
+          <option value="{{ candidate.email_id }}">{{ candidate.first_name }} {{ candidate.last_name }} </option>
+        {% endfor %}
+      </select>
+      
+      <input type="hidden" name="selected_vote_case" value="{{ selected_vote_case }}" autocomplete="off">
+
+      <br/> <br/>
+
+        {% if not user_already_voted %}
+          <div><input type="submit" value="SUBMIT MY VOTE" id="register_event"></div>
+        {% else  %}
+          <b> Wondering Where the VOTE button is? </b>
+          <ol>
+            <li> Voting is fair dude. Its not allowed twice. </li>
+            <li> You can trick another user to give you his email to use, only then you can vote again. :p </li>
+          </ol>
+        {% endif %}
+
+        </form>
+
+    {% else  %}
+	<a href="{{ login_url }}"><div id="login"> LOGIN </div></a>
+    <p>Please Login before you can make use of the intutive VOTIAPP application.</p> <br/>
+    {% endif %}
+{% endblock %}
+
+
