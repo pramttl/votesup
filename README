@@ -1,0 +1,3 @@
+Votesup is an exiting online voting application, designed to be a fair and virtual Voting Mediator. Designed keeping in mind the voting needs of IIT (BHU) Varanasi, votesup is a more generic concept and can be used by companies and organization alike. It eliminates the tedium involved in the arachaic chit based voting.
+
+Votesup is based on GOOGLE APP ENGINE. It is similar to a Django Application and uses the MVC Architecture.
